@@ -1,11 +1,11 @@
 import random
 
 import pygame
-
 from pygame.locals import *
+
 from player import Player
-from virus import Virus
-from soap import Soap
+from soap import Soap1, Soap2, Soap3, Soap4
+from virus import Virus1, Virus2, Virus3, Virus4
 
 
 def setup(W, H, caption):
@@ -30,16 +30,23 @@ def update(*args, **kwargs):
     for kw, arg in kwargs.items():
         if kw == "viruses":
             for virus in arg:
-                result = virus.update()
-                if not result:
-                    kwargs["player"].health -= 1
-                    if kwargs["player"].health <= 0:
-                        kwargs["player"].dead()
+                virus.update()
+                if virus.is_alive and virus.hitbox.colliderect(kwargs["player"].hitbox):
+                    virus.is_alive = False
+                    kwargs["player"].infect()
+                    print("infected")
         elif kw == "soaps":
             for soap in arg:
                 soap.update()
+                if soap.is_alive and soap.hitbox.colliderect(kwargs["player"].hitbox):
+                    soap.is_alive = False
+                    kwargs["player"].health += 2
         else:
             arg.update()
+    if kwargs["player"].health <= 0:
+        kwargs["player"].dead()
+    if kwargs["player"].health > 10:
+        kwargs["player"].health = 10
 
 
 def endgame(player):
@@ -81,7 +88,10 @@ def redraw(win, *args, **kwargs):
             alive = arg.draw(win)
             if not alive:
                 endgame(kwargs["player"])
-        if kw == "text":
+        elif kw == "text":
+            text = font.render(arg[0], 1, (220, 220, 220))
+            win.blit(text, (arg[1], arg[2]))
+        elif kw == "score":
             text = font.render(arg[0], 1, (220, 220, 220))
             win.blit(text, (arg[1], arg[2]))
         else:
@@ -91,11 +101,14 @@ def redraw(win, *args, **kwargs):
 
 
 def main():
-    pygame.time.set_timer(USEREVENT + 1, 3000)  # Timer for Virus spawn
-    pygame.time.set_timer(USEREVENT + 2, 10000)  # Timer for Soap spawn
+    pygame.time.set_timer(USEREVENT + 1, 1000)  # Timer for Virus spawn
+    pygame.time.set_timer(USEREVENT + 2, 5000)  # Timer for Soap spawn
     player = Player(468, 675, pygame.image.load("spaceship.png"), pygame.image.load("spaceship2.png"), 64, 64)
+    Viruses = [Virus1, Virus2, Virus3, Virus4]
     viruses = []
+    Soaps = [Soap1, Soap2, Soap3, Soap4]
     soaps = []
+    score = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -106,11 +119,14 @@ def main():
             if event.type == pygame.KEYUP:
                 player.handle_key_unpressed(event.key)
             if event.type == USEREVENT + 1:
+                Virus = random.choice(Viruses)
                 viruses.append(Virus(random.randint(10, 958), 10, pygame.image.load("virus.png"), 64, 64))
+                score += 1
             if event.type == USEREVENT + 2:
+                Soap = random.choice(Soaps)
                 soaps.append(Soap(random.randint(10, 958), 10, pygame.image.load("soap.png"), 64, 64))
         update(player=player, viruses=viruses, soaps=soaps)
-        redraw(win, *viruses, *soaps, player=player)
+        redraw(win, *viruses, *soaps, player=player, score=["Score: " + str(score), 10, 10])
         clock.tick(30)
 
 
