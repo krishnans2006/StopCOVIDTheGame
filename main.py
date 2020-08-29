@@ -49,7 +49,7 @@ def update(*args, **kwargs):
         kwargs["player"].health = 10
 
 
-def endgame(player):
+def endgame(player, score):
     player.is_alive = True
     player.health = 0
     while True:
@@ -63,7 +63,7 @@ def endgame(player):
                     quit()
                 if event.key == pygame.K_c:
                     main()
-        redraw(win, player=player, text=["Press q to quit and c to play again!", 200, 200])
+        redraw(win, player=player, text=["Press q to quit and c to play again!", 200, 200], score=score)
         clock.tick(30)
 
 
@@ -87,7 +87,7 @@ def redraw(win, *args, **kwargs):
         if kw == "player":
             alive = arg.draw(win)
             if not alive:
-                endgame(kwargs["player"])
+                endgame(kwargs["player"], kwargs["score"])
         elif kw == "text":
             text = font.render(arg[0], 1, (220, 220, 220))
             win.blit(text, (arg[1], arg[2]))
