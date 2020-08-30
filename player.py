@@ -23,6 +23,9 @@ class Player:
         self.infected = False
         self.infect_time = None
         self.infect_end = None
+        self.shield = False
+        self.shield_time = None
+        self.shield_end = 8
 
     def dead(self):
         self.is_alive = False
@@ -33,6 +36,13 @@ class Player:
         self.infect_time = datetime.now()
         self.infect_end = uniform(0.5, 1.5)
         print("You will be cured in", self.infect_end, "seconds")
+
+    def heal(self):
+        self.health += 2
+
+    def activate_shield(self):
+        self.shield = True
+        self.shield_time = datetime.now()
 
     def handle_key_pressed(self, key):
         if key == pygame.K_RIGHT or key == pygame.K_d:
@@ -75,6 +85,12 @@ class Player:
                 self.infect_time = None
                 print("You have been cured!")
             self.health -= 0.1
+        elif self.shield:
+            current = datetime.now()
+            if (current - self.shield_time).seconds > self.shield_end:
+                self.shield = False
+                self.shield_time = None
+                print("Shield gone!")
         else:
             self.health -= 0.01
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)

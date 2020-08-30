@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 
 import pygame
 from pygame.locals import *
@@ -6,6 +7,7 @@ from pygame.locals import *
 from player import Player
 from soap import Soap1, Soap2, Soap3, Soap4
 from virus import Virus1, Virus2, Virus3, Virus4
+from mask import Mask1, Mask2, Mask3, Mask4
 
 
 def setup(W, H, caption):
@@ -31,7 +33,7 @@ def update(*args, **kwargs):
         if kw == "viruses":
             for virus in arg:
                 virus.update()
-                if virus.is_alive and virus.hitbox.colliderect(kwargs["player"].hitbox):
+                if not kwargs["player"].shield and virus.is_alive and virus.hitbox.colliderect(kwargs["player"].hitbox):
                     virus.is_alive = False
                     kwargs["player"].infect()
                     print("infected")
@@ -40,7 +42,14 @@ def update(*args, **kwargs):
                 soap.update()
                 if soap.is_alive and soap.hitbox.colliderect(kwargs["player"].hitbox):
                     soap.is_alive = False
-                    kwargs["player"].health += 2
+                    kwargs["player"].heal()
+        elif kw == "masks":
+            for mask in arg:
+                mask.update()
+                if mask.is_alive and mask.hitbox.colliderect(kwargs["player"].hitbox):
+                    mask.is_alive = False
+                    kwargs["player"].activate_shield()
+                    print("Shield!")
         else:
             arg.update()
     if kwargs["player"].health <= 0:
@@ -96,6 +105,12 @@ def redraw(win, *args, **kwargs):
             win.blit(text, (arg[1], arg[2]))
         else:
             arg.draw(win)
+    if kwargs["player"].infected:
+        text = font.render("You are infected with CoViD-19!", 1, (220, 0, 0))
+        win.blit(text, (10, 800 - text.get_height() - 10))
+    if kwargs["player"].shield:
+        text = font.render(f"Mask activated! You will be protected from CoViD-19 for {kwargs['player'].shield_end - (datetime.now() - kwargs['player'].shield_time).seconds} more seconds!", 1, (0, 220, 0))
+        win.blit(text, (1000 - text.get_width() - 10, 800 - text.get_height() - 10))
     redraw_healthbar(win, kwargs["player"])
     pygame.display.flip()
 
@@ -103,11 +118,14 @@ def redraw(win, *args, **kwargs):
 def main():
     pygame.time.set_timer(USEREVENT + 1, 1000)  # Timer for Virus spawn
     pygame.time.set_timer(USEREVENT + 2, 5000)  # Timer for Soap spawn
+    pygame.time.set_timer(USEREVENT + 3, 10000)  # Timer for Mask spawn
     player = Player(468, 675, pygame.image.load("spaceship.png"), pygame.image.load("spaceship2.png"), 64, 64)
     Viruses = [Virus1, Virus2, Virus3, Virus4]
     viruses = []
     Soaps = [Soap1, Soap2, Soap3, Soap4]
     soaps = []
+    Masks = [Mask1, Mask2, Mask3, Mask4]
+    masks = []
     score = 0
     while True:
         for event in pygame.event.get():
@@ -125,8 +143,11 @@ def main():
             if event.type == USEREVENT + 2:
                 Soap = random.choice(Soaps)
                 soaps.append(Soap(random.randint(10, 958), 10, pygame.image.load("soap.png"), 64, 64))
-        update(player=player, viruses=viruses, soaps=soaps)
-        redraw(win, *viruses, *soaps, player=player, score=["Score: " + str(score), 10, 10])
+            if event.type == USEREVENT + 3:
+                Mask = random.choice(Masks)
+                masks.append(Mask(random.randint(10, 958), 10, pygame.image.load("mask.png"), 64, 64))
+        update(player=player, viruses=viruses, soaps=soaps, masks=masks)
+        redraw(win, *viruses, *soaps, *masks, player=player, score=["Score: " + str(score), 10, 10])
         clock.tick(30)
 
 
