@@ -36,7 +36,6 @@ def update(*args, **kwargs):
                 if not kwargs["player"].shield and virus.is_alive and virus.hitbox.colliderect(kwargs["player"].hitbox):
                     virus.is_alive = False
                     kwargs["player"].infect()
-                    print("infected")
         elif kw == "soaps":
             for soap in arg:
                 soap.update()
@@ -49,7 +48,6 @@ def update(*args, **kwargs):
                 if mask.is_alive and mask.hitbox.colliderect(kwargs["player"].hitbox):
                     mask.is_alive = False
                     kwargs["player"].activate_shield()
-                    print("Shield!")
         else:
             arg.update()
     if kwargs["player"].health <= 0:

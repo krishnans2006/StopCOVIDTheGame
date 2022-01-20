@@ -29,13 +29,11 @@ class Player:
 
     def dead(self):
         self.is_alive = False
-        print("dead")
 
     def infect(self):
         self.infected = True
         self.infect_time = datetime.now()
         self.infect_end = uniform(0.5, 1.5)
-        print("You will be cured in", self.infect_end, "seconds")
 
     def heal(self):
         self.health += 2
@@ -83,14 +81,12 @@ class Player:
             if (current - self.infect_time).seconds > self.infect_end:
                 self.infected = False
                 self.infect_time = None
-                print("You have been cured!")
             self.health -= 0.1
         elif self.shield:
             current = datetime.now()
             if (current - self.shield_time).seconds > self.shield_end:
                 self.shield = False
                 self.shield_time = None
-                print("Shield gone!")
         else:
             self.health -= 0.01
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
